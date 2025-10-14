@@ -1,0 +1,25 @@
+{
+  "name": "Mentuca",
+  "slug": "mentuca",
+  "version": "1.0.0",
+  "icon": "./src/assets/images/icone_app.png",
+  "jsEngine": "hermes",
+  "platforms": [
+    "ios",
+    "android",
+    "web"
+  ],
+  "orientation": "portrait",
+  "ios": {
+    "bundleIdentifier": "com.mentuca.mentucaapp"
+  },
+  "android": {
+    "package": "com.mentuca.mentucaapp"
+  },
+  "extra": {
+    "eas": {
+      "projectId": "a61fd148-175e-4dd3-a176-fc2edd456952"
+    }
+  },
+  "owner": "bernardo1022"
+}
