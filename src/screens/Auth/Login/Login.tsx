@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }) {
   try {
       const response = await loginAccount(email, password);
       await AsyncStorage.setItem("authToken", response.access_token);
-      login();
+      login(response);
     } catch (err: any) {
       Alert.alert("Erro", "Erro ao conectar com o servidor.");
     } finally {
@@ -43,6 +43,7 @@ export default function LoginScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Image source={Logo} style={[styles.logo]} resizeMode="contain" />
+      <View style={styles.mainContainer}>
       <CustomTitle
         title="Bem-vindo de volta!"
         subtitle="Pronto para mais uma sessão de estudos?"
@@ -112,6 +113,7 @@ export default function LoginScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+      </View>
     </View>
   );
 }

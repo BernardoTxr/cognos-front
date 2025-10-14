@@ -1,14 +1,18 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AuthStack from "./AuthStack";
-import AppTabs from "./AppTabs";
+import AppPaciente from "./AppPaciente";
+import AppTerapeuta from "./AppTerapeuta";
 import { useAuth } from "../context/AuthContext";
 import { useMainPreFetching } from "../hooks/useMainPreFetching";
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
+  const isPaciente = user?.is_patient;
+
+  console.log("user", JSON.stringify(user));
 
   // dispara o prefetch só quando logado
   useMainPreFetching(isLoggedIn);
@@ -16,7 +20,11 @@ export default function RootNavigator() {
   return (
     <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
       {isLoggedIn ? (
-        <Stack.Screen name="App" component={AppTabs} />
+        isPaciente ? (
+          <Stack.Screen name="AppPaciente" component={AppPaciente} />
+        ) : (
+          <Stack.Screen name="AppTerapeuta" component={AppTerapeuta} />
+        )
       ) : (
         <Stack.Screen name="Auth" component={AuthStack} />
       )}

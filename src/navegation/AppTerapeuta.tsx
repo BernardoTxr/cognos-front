@@ -2,23 +2,20 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
-import HomeStack from "./HomeStack";
-import TrainingScreen from "../screens/Training/Training";
-import StatisticsScreen from "../screens/Statistics/Statistics";
-import ProfileScreen from "../screens/Profile/Profile";
+import WikiScreen from "../screens/Terapeuta/Wiki/Wiki";
+import HomeScreen from "../screens/Terapeuta/Home/Home";
 import Colors from "../themes/colors";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { TrilhaProvider } from "../context/TrilhaContext";
 
 const Tab = createBottomTabNavigator();
 
-export default function AppTabs() {
+export default function AppPaciente() {
   return (
     <TrilhaProvider>
       <Tab.Navigator
         id={undefined}
         screenOptions={({ route }) => {
-          const hiddenRoutes = ["Lesson", "DoneLesson"];
 
           return {
             headerShown: false,
@@ -27,10 +24,6 @@ export default function AppTabs() {
             tabBarShowLabel: false,
             tabBarStyle: (() => {
               const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-
-              if (route.name === "Home" && hiddenRoutes.includes(routeName)) {
-                return { display: "none" };
-              }
 
               return {
                 backgroundColor: Colors.background.ligth,
@@ -46,14 +39,8 @@ export default function AppTabs() {
                 case "Home":
                   iconName = focused ? "home" : "home-outline";
                   break;
-                case "Training":
+                case "Wiki":
                   iconName = focused ? "barbell" : "barbell-outline";
-                  break;
-                case "Statistics":
-                  iconName = focused ? "stats-chart" : "stats-chart-outline";
-                  break;
-                case "Profile":
-                  iconName = focused ? "person" : "person-outline";
                   break;
                 default:
                   iconName = "ellipse";
@@ -65,10 +52,8 @@ export default function AppTabs() {
         }}
         >
 
-        <Tab.Screen name="Home" component={HomeStack} />
-        <Tab.Screen name="Training" component={TrainingScreen} />
-        <Tab.Screen name="Statistics" component={StatisticsScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Wiki" component={WikiScreen} />
       </Tab.Navigator>
     </TrilhaProvider>
   );

@@ -6,8 +6,9 @@ import {
   StyleSheet,
   TextInputProps,
   TouchableOpacity,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
 } from "react-native";
+import { Picker } from "@react-native-picker/picker"; // 👈 Import necessário
 import { Colors, Fonts, Spacing } from "../themes";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -19,6 +20,10 @@ interface CustomInputProps extends TextInputProps {
   spanStyle?: object;
   secure?: boolean;
   required?: boolean;
+  pickerOptions?: { label: string; value: string }[];
+  selectedValue?: string;
+  onValueChange?: (value: string) => void;
+  type?: "text" | "password" | "date"; // 🔹 Novo
 }
 
 const CustomInput: React.FC<CustomInputProps> = ({
@@ -29,6 +34,10 @@ const CustomInput: React.FC<CustomInputProps> = ({
   spanStyle,
   secure = false,
   required = false,
+  pickerOptions,
+  selectedValue,
+  onValueChange,
+  type = "text", // 🔹 default
   ...rest
 }) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -38,29 +47,46 @@ const CustomInput: React.FC<CustomInputProps> = ({
     setPasswordVisible((prev) => !prev);
   };
 
+  const isPicker = !!pickerOptions;
+  const isDate = type === "date";
+
   return (
     <KeyboardAvoidingView style={[styles.container, containerStyle]}>
       {label && (
         <Text style={styles.label}>
-            {label}
-            {required && <Text style={styles.required}> *</Text>}
+          {label}
+          {required && <Text style={styles.required}> *</Text>}
         </Text>
-        )}
+      )}
+
       <View
         style={[
           styles.inputWrapper,
           { borderColor: isFocused ? Colors.primary : Colors.muted },
         ]}
       >
-        <TextInput
-          style={[styles.input, inputStyle]}
-          placeholderTextColor={Colors.muted}
-          secureTextEntry={!isPasswordVisible}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          {...rest}
-        />
-        {secure && (
+        {isPicker ? (
+          <Picker
+            selectedValue={selectedValue}
+            onValueChange={(value) => onValueChange && onValueChange(value)}
+            style={[styles.picker, inputStyle]}
+            dropdownIconColor={Colors.primary}
+          >
+            {pickerOptions.map((option, index) => (
+              <Picker.Item key={index} label={option.label} value={option.value} />
+            ))}
+          </Picker>
+        ) : (
+          <TextInput
+            style={[styles.input, inputStyle]}
+            placeholderTextColor={Colors.muted}
+            secureTextEntry={type === "password" ? !isPasswordVisible : false}
+            keyboardType={isDate ? "numeric" : rest.keyboardType}
+            {...rest}
+          />
+        )}
+
+        {secure && !isPicker && type === "password" && (
           <TouchableOpacity onPress={togglePasswordVisibility}>
             <Ionicons
               name={isPasswordVisible ? "eye-off" : "eye"}
@@ -71,6 +97,7 @@ const CustomInput: React.FC<CustomInputProps> = ({
           </TouchableOpacity>
         )}
       </View>
+
       {spanText && <Text style={[styles.spanText, spanStyle]}>{spanText}</Text>}
     </KeyboardAvoidingView>
   );
@@ -83,6 +110,7 @@ const styles = StyleSheet.create({
     width: "90%",
     marginVertical: Spacing.small,
     margin: Spacing.small,
+    alignSelf: "center"
   },
   label: {
     fontSize: Fonts.size.medium,
@@ -105,6 +133,12 @@ const styles = StyleSheet.create({
     fontSize: Fonts.size.medium,
     color: Colors.text,
   },
+  picker: {
+    flex: 1,
+    height: 48,
+    color: Colors.text,
+    fontFamily: Fonts.regular,
+  },
   icon: {
     marginLeft: 8,
   },
@@ -118,4 +152,3 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
   },
 });
-

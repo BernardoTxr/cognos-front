@@ -8,24 +8,37 @@ import {
   TouchableOpacity,
   Keyboard,
   TouchableWithoutFeedback,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import CustomInput from "../../../components/Input";
 import CustomButton from "../../../components/Button";
 import CustomTitle from "../../../components/Title";
 import styles from "./styles";
-import { registerAccount } from "../../../services/auth";
+import { registerAccount, registerPaciente, registerTerapeuta } from "../../../services/auth";
 
 export default function SignUpScreen({ navigation }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState(""); // Tipo de conta
+  const [isPaciente, setIsPaciente] = useState(false);
+
+  // Campos adicionais para Paciente
+  const [nomeCompleto, setNomeCompleto] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [sexo, setSexo] = useState("");
+  const [nivelTea, setNivelTea] = useState(null);
+
+  // Campos adicionais para Terapeuta
+  const [documento, setDocumento] = useState("");
 
   const [error, setError] = useState("");
   const [errorConfirm, setErrorConfirm] = useState("");
   const [isPasswordValid, setIsPasswordValid] = useState(false);
 
+  // Validação de senha
   const validatePassword = () => {
     if (password.length < 8 && password.length !== 0) {
       setError("A senha deve ter pelo menos 8 caracteres.");
@@ -46,20 +59,74 @@ export default function SignUpScreen({ navigation }) {
     validatePassword();
   }, [password, confirmPassword]);
 
+  const handleRoleChange = (value: string) => {
+    setRole(value);
+    setIsPaciente(value === "paciente");
+    // Reset campos adicionais
+    setNomeCompleto("");
+    setDataNascimento("");
+    setCpf("");
+    setSexo("");
+    setNivelTea("");
+    setDocumento("");
+  };
+
   const handleSignUp = async () => {
     if (!isPasswordValid) {
       Alert.alert("Erro", "As senhas devem coincidir");
       return;
     }
 
-    if (!username || !email || !password) {
-      Alert.alert("Erro", "Todos os campos devem estar preenchidos");
+    if (!username || !email || !password || !role) {
+      Alert.alert("Erro", "Todos os campos obrigatórios devem estar preenchidos");
       return;
     }
 
+    // Valida campos adicionais
+    if (isPaciente) {
+      if (!nomeCompleto || !dataNascimento || !cpf || !sexo) {
+        Alert.alert("Erro", "Todos os campos do paciente devem estar preenchidos");
+        return;
+      }
+    } else {
+      if (!nomeCompleto) {
+        Alert.alert("Erro", "O nome completo do terapeuta é obrigatório");
+        return;
+      }
+    }
+
     try {
-      const response = await registerAccount(email, username, password);
-      Alert.alert("Sucesso", response.message);
+      // 1️⃣ Cria o usuário
+      const userPayload = {
+        email,
+        username,
+        password,
+        is_patient: isPaciente,
+      };
+      const userResponse = await registerAccount(
+        userPayload.email,
+        userPayload.username,
+        userPayload.password,
+        userPayload.is_patient
+      );
+
+      // 2️⃣ Cria o perfil dependendo do tipo
+      if (isPaciente) {
+        await registerPaciente({
+          nome_completo: nomeCompleto,
+          data_de_nascimento: dataNascimento,
+          cpf,
+          sexo: sexo === "masculino" ? "masc" : sexo === "feminino" ? "fem" : "outro",
+          nivel_tea: nivelTea, // opcional, pode definir default
+        });
+      } else {
+        await registerTerapeuta({
+          nome_completo: nomeCompleto,
+          documento: documento || null,
+        });
+      }
+
+      Alert.alert("Sucesso", "Conta criada com sucesso!");
       navigation.navigate("Login");
     } catch (error: any) {
       if (error.response) {
@@ -78,75 +145,165 @@ export default function SignUpScreen({ navigation }) {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
           <View style={styles.innerContainer}>
-          <CustomTitle
-            title="Crie sua conta"
-            subtitle="Preencha os campos abaixo para começar"
-          />
-
-          <ScrollView style={styles.scrollView}>
-
-          <View style={styles.inputSpacing}>
-            <CustomInput
-              label="Nome de usuário"
-              placeholder="Digite seu nome de usuário"
-              value={username}
-              onChangeText={setUsername}
-              required
+            <CustomTitle
+              title="Crie sua conta"
+              subtitle="Preencha os campos abaixo para começar"
             />
-          </View>
 
-          <View style={styles.inputSpacing}>
-            <CustomInput
-              label="Email"
-              placeholder="Digite seu e-mail"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-              required
-            />
-          </View>
+            <ScrollView style={styles.scrollView}>
+              <View style={styles.inputSpacing}>
+                <CustomInput
+                  label="Nome de usuário"
+                  placeholder="Digite seu nome de usuário"
+                  value={username}
+                  onChangeText={setUsername}
+                  required
+                />
+              </View>
 
-          <View style={styles.inputSpacing}>
-            <CustomInput
-              label="Senha"
-              placeholder="Digite sua senha"
-              secure
-              value={password}
-              onChangeText={setPassword}
-              spanText={error}
-              required
-            />
-          </View>
+              <View style={styles.inputSpacing}>
+                <CustomInput
+                  label="Email"
+                  placeholder="Digite seu e-mail"
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
+                  required
+                />
+              </View>
 
-          <View style={styles.inputSpacing}>
-            <CustomInput
-              label="Confirmar senha"
-              placeholder="Digite a senha novamente"
-              secure
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              spanText={errorConfirm}
-              required
-            />
-          </View>
+              <View style={styles.inputSpacing}>
+                <CustomInput
+                  label="Senha"
+                  placeholder="Digite sua senha"
+                  secure
+                  value={password}
+                  onChangeText={setPassword}
+                  spanText={error}
+                  required
+                />
+              </View>
 
-          </ScrollView>
+              <View style={styles.inputSpacing}>
+                <CustomInput
+                  label="Confirmar senha"
+                  placeholder="Digite a senha novamente"
+                  secure
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  spanText={errorConfirm}
+                  required
+                />
+              </View>
 
-          <View style={styles.buttonSpacing}>
-            <CustomButton
-              title="Cadastrar"
-              fill
-              size="large"
-              onPress={handleSignUp}
-            />
-          </View>
+              <View style={styles.inputSpacing}>
+                <CustomInput
+                  label="Tipo de conta"
+                  required
+                  pickerOptions={[
+                    { label: "Selecione...", value: "" },
+                    { label: "Paciente", value: "paciente" },
+                    { label: "Terapeuta", value: "terapeuta" },
+                  ]}
+                  selectedValue={role}
+                  onValueChange={handleRoleChange}
+                />
+              </View>
 
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Já possui uma conta? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text style={styles.linkText}>Log-In</Text>
-            </TouchableOpacity>
-          </View>
+              {role && (
+                <>
+                  <View style={styles.inputSpacing}>
+                    <CustomInput
+                      label="Nome completo"
+                      placeholder="Digite seu nome completo"
+                      value={nomeCompleto}
+                      onChangeText={setNomeCompleto}
+                      required
+                    />
+                  </View>
+
+                  {isPaciente ? (
+                    <>
+                      <View style={styles.inputSpacing}>
+                        <CustomInput
+                          label="Data de nascimento"
+                          placeholder="AAAA-MM-DD"
+                          type="date" // 🔹 Agora o input é do tipo date
+                          value={dataNascimento}
+                          onChangeText={setDataNascimento}
+                        />
+                      </View>
+                      <View style={styles.inputSpacing}>
+                        <CustomInput
+                          label="CPF"
+                          placeholder="Digite seu CPF"
+                          keyboardType="numeric"
+                          value={cpf}
+                          onChangeText={setCpf}
+                        />
+                      </View>
+                      <View style={styles.inputSpacing}>
+                        <CustomInput
+                          label="Sexo"
+                          pickerOptions={[
+                            { label: "Selecione...", value: "" },
+                            { label: "Masculino", value: "masculino" },
+                            { label: "Feminino", value: "feminino" },
+                            { label: "Outro", value: "outro" },
+                          ]}
+                          selectedValue={sexo}
+                          onValueChange={setSexo}
+                        />
+                      </View>
+                      <View style={styles.inputSpacing}>
+                        <CustomInput
+                          label="Nível TEA"
+                          placeholder="Opcional"
+                          value={nivelTea}
+                          onChangeText={setNivelTea}
+                        />
+                        <CustomInput
+                          label="Nível TEA"
+                          pickerOptions={[
+                            { label: "Opcional", value: "" },
+                            { label: "Nível 1", value: "nivel_1" },
+                            { label: "Nível 2", value: "nivel_2" },
+                            { label: "Nível 3", value: "nivel_3" },
+                          ]}
+                          selectedValue={nivelTea}
+                          onValueChange={setNivelTea}
+                        />
+                      </View>
+                    </>
+                  ) : (
+                    <View style={styles.inputSpacing}>
+                      <CustomInput
+                        label="Documento"
+                        placeholder="Opcional"
+                        value={documento}
+                        onChangeText={setDocumento}
+                      />
+                    </View>
+                  )}
+                </>
+              )}
+            </ScrollView>
+
+            <View style={styles.buttonSpacing}>
+              <CustomButton
+                title="Cadastrar"
+                fill
+                size="large"
+                onPress={handleSignUp}
+              />
+            </View>
+
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Já possui uma conta? </Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+                <Text style={styles.linkText}>Log-In</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </TouchableWithoutFeedback>

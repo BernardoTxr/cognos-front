@@ -13,6 +13,8 @@ const styles = StyleSheet.create({
   },
   innerContainer: {
     maxHeight: "80%",
+    width: "60%",
+    alignSelf: "center",
   },
   inputSpacing: {
     marginTop: Spacing.medium,
@@ -41,7 +43,25 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontFamily: Fonts.medium,
     fontSize: Fonts.size.small,
-  },
+  }, pickerContainer: {
+  borderColor: "#ccc",
+  marginTop: 5,
+  marginBottom: 10,
+  borderWidth: 1.5,
+    borderRadius: Spacing.boderRadius,
+    paddingHorizontal: Spacing.medium,
+    backgroundColor: Colors.background.ligth,
+    width: "90%",
+},
+picker: {
+  height: 50,
+  width: "100%",
+},
+label: {
+  fontSize: 16,
+  fontWeight: "500",
+  color: "#333",
+},
 });
 
 export default styles;
