@@ -2,7 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const api = axios.create({
-  baseURL: "https://mentuca-back-production.up.railway.app/",
+  baseURL: "http://localhost:8000/",
   withCredentials: false,
 });
 

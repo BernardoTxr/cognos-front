@@ -1,0 +1,12 @@
+# Ignorar node_modules
+node_modules
+
+# Ignorar builds locais
+android
+ios
+
+# Ignorar arquivos temporários
+*.log
+*.lock
+.expo
+.expo-shared

@@ -8,6 +8,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.large,
     justifyContent: "center",
   },
+    mainContainer: {
+    flex: 1,
+    justifyContent: "center",
+    width: "60%",
+    alignSelf: "center"
+  },
   inputSpacing: {
     marginTop: Spacing.medium,
   },

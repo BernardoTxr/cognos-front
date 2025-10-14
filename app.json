@@ -1,6 +1,6 @@
 {
-  "name": "Mentuca",
-  "slug": "mentuca",
+  "name": "Cognos",
+  "slug": "cognos",
   "version": "1.0.0",
   "icon": "./src/assets/images/icone_app.png",
   "jsEngine": "hermes",
