@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Colors, Fonts, Spacing } from "../../../themes";
 import { Ionicons } from "@expo/vector-icons";
+import { registerPartidaJogoDaBola } from "../../../services/partida";
 
 // --- CONSTANTES ---
 const NUM_CUPS = 5;
@@ -136,12 +137,32 @@ const Cup = memo(({ cup, status, onPress }) => {
 const JogoDaBolaScreen = ({navigation}) => {
   const [status, setStatus] = useState(STATUS.INSTRUCTIONS);
   const [timeElapsed, setTimeElapsed] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [cups, setCups] = useState(initializeCups);
   const [round, setRound] = useState(1);
   const [score, setScore] = useState(0);
   const [message, setMessage] = useState("Encontre a bola!");
   const [isShuffling, setIsShuffling] = useState(false);
   const [ballCupId, setBallCupId] = useState(cups.find((c) => c.hasBall).id);
+
+    useEffect(() => {
+      let timer: NodeJS.Timeout | null = null;
+
+      // O temporizador roda em todos os estados de jogo após o início
+      if (
+        startTime !== null &&
+        status !== STATUS.INSTRUCTIONS &&
+        status !== STATUS.RESULT
+      ) {
+        timer = setInterval(() => {
+          setTimeElapsed(Math.floor(performance.now() - startTime));
+        }, 1000);
+      }
+
+      return () => {
+        if (timer) clearInterval(timer);
+      };
+    }, [status, startTime]);
 
   // Efeito para lidar com o REVEAL_BALL
   useEffect(() => {
@@ -216,11 +237,11 @@ const JogoDaBolaScreen = ({navigation}) => {
       setMessage(`ERROU 😔 A bola estava no copo ${ballCupId}.`);
     }
 
-    setTimeout(() => {
+    setTimeout(async () => {
       if (round < TOTAL_ROUNDS) {
         startRound();
       } else {
-        // Fim do jogo, o status já é RESULT e o "FIM DE JOGO" será exibido.
+        await registerPartidaJogoDaBola({acertos: score, duration: timeElapsed})
       }
     }, 1800);
   };
@@ -233,7 +254,6 @@ const JogoDaBolaScreen = ({navigation}) => {
     
     // AQUI ESTÁ A CORREÇÃO: Incrementa a rodada em 1
     setRound((prev) => prev + 1); 
-    
     setStatus(STATUS.REVEAL_BALL); // Começa revelando a bola
   };
 
@@ -244,6 +264,7 @@ const JogoDaBolaScreen = ({navigation}) => {
     setBallCupId(initial.find((c) => c.hasBall).id);
     setRound(1);
     setScore(0);
+    setStartTime(null);
     setStatus(STATUS.INSTRUCTIONS); // Volta para as instruções
   };
 
@@ -268,7 +289,10 @@ const JogoDaBolaScreen = ({navigation}) => {
 
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => setStatus(STATUS.REVEAL_BALL)} // Inicia revelando a bola
+          onPress={() => {
+            setStartTime(performance.now());
+            setTimeElapsed(0);
+            setStatus(STATUS.REVEAL_BALL);}}
         >
           <Text style={styles.actionButtonText}>Iniciar Partida</Text>
         </TouchableOpacity>
@@ -513,7 +537,7 @@ const styles = StyleSheet.create({
   },   resultScore: {
     fontSize: 42,
     fontFamily: Fonts.bold,
-    color: Colors.background.ligth,
+    color: Colors.primary,
   },   infoPill: {
     flexDirection: 'row',
     alignItems: 'center',
