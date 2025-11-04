@@ -14,7 +14,9 @@ import CustomInput from "../../../components/Input";
 import CustomButton from "../../../components/Button";
 import CustomTitle from "../../../components/Title";
 import styles from "./styles";
-import { registerAccount, registerPaciente, registerTerapeuta } from "../../../services/auth";
+import { loginAccount, registerAccount, registerPaciente, registerTerapeuta } from "../../../services/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 export default function SignUpScreen({ navigation }) {
   const [username, setUsername] = useState("");
@@ -110,13 +112,18 @@ export default function SignUpScreen({ navigation }) {
         userPayload.is_patient
       );
 
+      // realiza login
+      const loginResponse = await loginAccount(email, password);
+      await AsyncStorage.setItem("authToken", loginResponse.access_token);
+
+
       // 2️⃣ Cria o perfil dependendo do tipo
       if (isPaciente) {
         await registerPaciente({
           nome_completo: nomeCompleto,
           data_de_nascimento: dataNascimento,
           cpf,
-          sexo: sexo === "masculino" ? "masc" : sexo === "feminino" ? "fem" : "outro",
+          sexo: sexo === "masc" ? "masc" : sexo === "fem" ? "fem" : "outro",
           nivel_tea: nivelTea, // opcional, pode definir default
         });
       } else {
@@ -127,7 +134,6 @@ export default function SignUpScreen({ navigation }) {
       }
 
       Alert.alert("Sucesso", "Conta criada com sucesso!");
-      navigation.navigate("Login");
     } catch (error: any) {
       if (error.response) {
         Alert.alert("Erro", error.response.data.detail);
@@ -247,8 +253,8 @@ export default function SignUpScreen({ navigation }) {
                           label="Sexo"
                           pickerOptions={[
                             { label: "Selecione...", value: "" },
-                            { label: "Masculino", value: "masculino" },
-                            { label: "Feminino", value: "feminino" },
+                            { label: "Masculino", value: "masc" },
+                            { label: "Feminino", value: "fem" },
                             { label: "Outro", value: "outro" },
                           ]}
                           selectedValue={sexo}
@@ -256,12 +262,6 @@ export default function SignUpScreen({ navigation }) {
                         />
                       </View>
                       <View style={styles.inputSpacing}>
-                        <CustomInput
-                          label="Nível TEA"
-                          placeholder="Opcional"
-                          value={nivelTea}
-                          onChangeText={setNivelTea}
-                        />
                         <CustomInput
                           label="Nível TEA"
                           pickerOptions={[

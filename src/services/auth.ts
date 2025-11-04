@@ -58,7 +58,7 @@ export async function registerPaciente(pacienteData: {
   nivel_tea?: "nivel_1" | "nivel_2" | "nivel_3";
 }) {
   try {
-    const response = await api.post("/dados/paciente", pacienteData);
+    const response = await api.post("/preencher_dados/paciente", pacienteData);
     return response.data;
   } catch (error: any) {
     throw error.response?.data || error;
@@ -71,7 +71,7 @@ export async function registerTerapeuta(terapeutaData: {
   documento?: string | null;
 }) {
   try {
-    const response = await api.post("/dados/terapeuta", terapeutaData);
+    const response = await api.post("/preencher_dados/terapeuta", terapeutaData);
     return response.data;
   } catch (error: any) {
     throw error.response?.data || error;
