@@ -27,6 +27,16 @@ const STATUS = {
   RESULT: "RESULTADO",
 };
 
+const formatTime = (ms: number) => {
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  
+  const pad = (num: number) => num.toString().padStart(2, '0');
+  
+  return `${pad(minutes)}:${pad(seconds)}`;
+};
+
 // --- INICIALIZAÇÃO DOS COPOS ---
 const initializeCups = () => {
   const initialCups = Array.from({ length: NUM_CUPS }, (_, id) => ({
@@ -123,8 +133,9 @@ const Cup = memo(({ cup, status, onPress }) => {
 });
 
 // --- COMPONENTE PRINCIPAL ---
-const JogoDaBolaScreen = () => {
+const JogoDaBolaScreen = ({navigation}) => {
   const [status, setStatus] = useState(STATUS.INSTRUCTIONS);
+  const [timeElapsed, setTimeElapsed] = useState(0);
   const [cups, setCups] = useState(initializeCups);
   const [round, setRound] = useState(1);
   const [score, setScore] = useState(0);
@@ -279,6 +290,11 @@ const JogoDaBolaScreen = () => {
           </Text>
         </View>
 
+        <View style={styles.resultBox}>
+            <Text style={styles.resultLabel}>Tempo Total:</Text>
+            <Text style={styles.resultValue}>{formatTime(timeElapsed)}</Text>
+        </View>
+
         <TouchableOpacity style={styles.actionButton} onPress={restartGame}>
           <Text style={styles.actionButtonText}>Jogar Novamente</Text>
         </TouchableOpacity>
@@ -287,23 +303,21 @@ const JogoDaBolaScreen = () => {
 
   return (
     <View style={styles.contentContainer}>
-      <View style={styles.header}>
-        <View style={styles.headerItem}>
-          <Text style={styles.headerLabel}>Rodada</Text>
-          <Text style={styles.headerValue}>
-            {round} / {TOTAL_ROUNDS}
-          </Text>
-        </View>
 
-        <View style={styles.headerItem}>
-          <Text style={styles.headerLabel}>Placar</Text>
-          <Text style={styles.headerValue}>{score} acertos</Text>
+        <View style={styles.header}>
+            <View style={styles.infoPill}>
+                <Ionicons name="time-outline" size={16} color={Colors.primary} />
+                <Text style={styles.infoText}>Tempo: {formatTime(timeElapsed)}</Text>
+            </View>
+            <View style={styles.infoPill}>
+                <Ionicons name="radio-button-off-outline" size={16} color={Colors.primary} />
+                <Text style={styles.infoText}>Rodada: {round} / {TOTAL_ROUNDS}</Text>
+            </View>
+            <TouchableOpacity style={styles.restartButton} onPress={restartGame}>
+                <Ionicons name="refresh-outline" size={24} color={Colors.background.dark} />
+            </TouchableOpacity>
         </View>
-
-        <TouchableOpacity onPress={restartGame} style={styles.restartButton}>
-          <Ionicons name="refresh" size={24} color={Colors.background.ligth} />
-        </TouchableOpacity>
-      </View>
+     
 
       <Text style={styles.message}>{message}</Text>
 
@@ -321,6 +335,14 @@ const JogoDaBolaScreen = () => {
           <Text style={styles.shuffleText}>Embaralhando...</Text>
         </View>
       )}
+
+       <TouchableOpacity 
+          style={styles.exitButton}
+          onPress={() => navigation.goBack()} 
+      >
+          <Ionicons name="exit-outline" size={20} color={Colors.text} />
+          <Text style={styles.exitButtonText}>Sair do Jogo</Text>
+      </TouchableOpacity>
     </View>
 
   );
@@ -390,6 +412,7 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.boderRadius,
     padding: Spacing.medium,
     marginBottom: Spacing.medium,
+    alignSelf: "center",
   },
   headerItem: { alignItems: "center" },
   headerLabel: { color: Colors.muted, fontSize: 14, fontFamily: Fonts.medium },
@@ -465,22 +488,65 @@ const styles = StyleSheet.create({
     color: Colors.warning,
     fontFamily: Fonts.medium,
   },
-  resultBox: {
-    backgroundColor: Colors.background.dark,
-    borderRadius: Spacing.boderRadius,
-    padding: Spacing.xlarge,
-    alignItems: "center",
-    marginBottom: Spacing.large,
-  },
   resultTitle: {
-    fontSize: 20,
-    fontFamily: Fonts.bold,
-    color: Colors.success,
-    marginBottom: Spacing.small,
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginVertical: 20,
   },
-  resultScore: {
+  resultBox: {
+    backgroundColor: Colors.background.ligth,
+    padding: 2,
+    borderRadius: 10,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  resultLabel: {
+    fontSize: 16,
+    color: Colors.muted,
+    marginBottom: 5,
+  },
+  resultValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: Colors.primary,
+  },   resultScore: {
     fontSize: 42,
     fontFamily: Fonts.bold,
     color: Colors.background.ligth,
+  },   infoPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background.ligth,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.muted,
   },
+  infoText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginLeft: 5,
+  }, exitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 15,
+    marginHorizontal: 10,
+    marginTop: 250,
+    marginBottom: 10,
+    borderRadius: 8,
+    backgroundColor: Colors.background.ligth,
+    borderWidth: 1,
+    borderColor: Colors.muted,
+    width: "100%",
+  },
+  exitButtonText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: Colors.text,
+    fontWeight: '600',
+  }
 });
