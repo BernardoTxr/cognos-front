@@ -10,9 +10,12 @@ import { TrilhaProvider } from "../context/TrilhaContext";
 import { GamePlaceholderScreen } from "../components/design/GamePlaceholderScreen";
 import JogoDoReflexoScreen from "../screens/Jogos/JogoDoReflexo/Home";
 import JogoDaMemoriaScreen from "../screens/Jogos/JogoDaMemoria/Home";
+import JogoDaMatematicaScreen from "../screens/Jogos/JogoDaMatematica/Home";
 import { DrawerContentComponentProps
 , DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from "react-native";
+
+const CognosLogo = require("../assets/images/logo_horizontal.png");
 
 const Tab = createDrawerNavigator();
 
@@ -154,6 +157,14 @@ export default function AppPaciente() {
           component={GamePlaceholderScreen} 
           options={{ 
             title: "Encontre o Copo",
+            drawerItemStyle: { display: 'none' } 
+          }}
+        />
+        <Tab.Screen 
+          name="JogoDaMatematica" 
+          component={JogoDaMatematicaScreen} 
+          options={{ 
+            title: "Jogo da Matemática",
             drawerItemStyle: { display: 'none' } 
           }}
         />

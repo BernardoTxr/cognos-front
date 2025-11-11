@@ -7,6 +7,14 @@ import { JogoCard } from "../../../components/JogoCard";
 // Dados dos Jogos (Seus 4 jogos com as avaliações)
 const JOGOS_DATA = [
   {
+    id: '5',
+    title: 'Math Cognos',
+    description: 'Resolva operações matemáticas o mais rápido possível usando blocos.',
+    tests: 'Coordenação Motora, Agilidade Mental, Cálculo Mental',
+    iconName: 'calculator-outline',
+    route: 'JogoDaMatematica',
+  },
+  {
     id: '1',
     title: 'Jogo da Memória',
     description: 'Encontre os pares de cartas idênticas. Um clássico para trabalhar o resgate de informações.',
