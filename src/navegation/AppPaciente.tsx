@@ -14,17 +14,25 @@ import JogoDaMatematicaScreen from "../screens/Jogos/JogoDaMatematica/Home";
 import { DrawerContentComponentProps
 , DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from "react-native";
+import CognosLogo from "../assets/images/logo_horizontal.png" ;
+import { useAuth } from "../context/AuthContext";
+
+
 
 const CognosLogo = require("../assets/images/logo_horizontal.png");
 
 const Tab = createDrawerNavigator();
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
+
+  const { logout } = useAuth();
+  
   
   const handleLogout = () => {
     // 🚨 Ação de Logout:
     console.log("Usuário deslogado do Cognos!");
     Alert.alert("Sair", "Você foi desconectado.", [{ text: "OK" }]);
+    logout();
     // Aqui você deve adicionar a lógica real de autenticação e navegação para a tela de Login.
   };
 
@@ -40,18 +48,19 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
 
       {/* 2. SEÇÃO INFERIOR FIXA (LOGOUT E LOGO) */}
       <View style={styles.bottomSection}>
-        {/* Botão de Logout */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color={Colors.colors.red} />
-          <Text style={styles.logoutText}>Sair</Text>
-        </TouchableOpacity>
-        
         {/* Logo do Cognos */}
         <Image 
           source={CognosLogo} 
           style={styles.logo}
           resizeMode="contain"
         />
+
+        {/* Botão de Logout */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={24} color={Colors.colors.red} />
+          <Text style={styles.logoutText}>Sair</Text>
+        </TouchableOpacity>
+        
       </View>
     </View>
   );
@@ -64,6 +73,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.muted,
     paddingBottom: 30, // Espaço extra para visibilidade na base
+    justifyContent: "center",
+    alignItems: "center"
   },
   logoutButton: {
     flexDirection: 'row',
@@ -154,7 +165,7 @@ export default function AppPaciente() {
         />
         <Tab.Screen 
           name="EncontreOCopo" 
-          component={GamePlaceholderScreen} 
+          component={JogoDaBolaScreen} 
           options={{ 
             title: "Encontre o Copo",
             drawerItemStyle: { display: 'none' } 

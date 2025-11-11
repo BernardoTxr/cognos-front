@@ -4,7 +4,6 @@ import AuthStack from "./AuthStack";
 import AppPaciente from "./AppPaciente";
 import AppTerapeuta from "./AppTerapeuta";
 import { useAuth } from "../context/AuthContext";
-import { useMainPreFetching } from "../hooks/useMainPreFetching";
 
 const Stack = createNativeStackNavigator();
 
@@ -14,8 +13,6 @@ export default function RootNavigator() {
 
   console.log("user", JSON.stringify(user));
 
-  // dispara o prefetch só quando logado
-  useMainPreFetching(isLoggedIn);
 
   return (
     <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>

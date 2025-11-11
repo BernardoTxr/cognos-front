@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../../themes";
+import {registerPartidaJogoReac} from "../../../services/partida";
 
 // --- CONSTANTES DE ESTADO DO JOGO ---
 const STATUS = {
@@ -56,7 +57,7 @@ const JogoDoReflexoScreen = ({ navigation }) => {
   /**
    * 3. Lógica ao clicar no botão/tela.
    */
-  const handleTap = () => {
+  const handleTap = async () => {
     const tapTime = performance.now();
 
     if (status === STATUS.WAITING) {
@@ -73,8 +74,11 @@ const JogoDoReflexoScreen = ({ navigation }) => {
     } else if (status === STATUS.READY) {
       // Clique correto: calcula e mostra o resultado
       const timeTaken = tapTime - startTimeRef.current;
-      setReactionTime(Math.round(timeTaken));
+      const roundedTime = Math.round(timeTaken)
+      setReactionTime(roundedTime);
       setStatus(STATUS.RESULT);
+      await registerPartidaJogoReac({reacao: roundedTime})
+
     }
   };
 

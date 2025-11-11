@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../../themes";
+import {registerPartidaJogoDaMem} from "../../../services/partida";
 // --- 1. DADOS E LÓGICA DE CARTAS ---
 
 // Adicione os estados do jogo (similar ao Jogo do Reflexo)
@@ -144,12 +145,19 @@ const JogoDaMemoriaScreen = ({ navigation }) => {
   }, [flippedCards]);
 
   // Lógica de FIM DE JOGO (Vitoria)
-  useEffect(() => {
-    if (matchesFound === totalPairs && status === STATUS.PLAYING) {
-      setStatus(STATUS.RESULT); // Muda para o estado de resultado
-      // O useEffect do timer será limpo automaticamente
-    }
-  }, [matchesFound, totalPairs, status]);
+    useEffect(() => {
+      const handleEndGame = async () => {
+        if (matchesFound === totalPairs && status === STATUS.PLAYING) {
+          setStatus(STATUS.RESULT);
+          await registerPartidaJogoDaMem({
+            clicks: clickCount,
+            duration: Math.floor(timeElapsed), // garante valor inteiro
+          });
+        }
+      };
+
+      handleEndGame();
+    }, [matchesFound, totalPairs, status]);
 
 
   // Lógica de clique no Card
