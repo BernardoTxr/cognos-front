@@ -3,6 +3,7 @@ import { View, Text, FlatList, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors} from "../../../themes";
 import { JogoCard } from "../../../components/JogoCard";
+import CustomTitle from "../../../components/Title";
 
 // Dados dos Jogos (Seus 4 jogos com as avaliações)
 const JOGOS_DATA = [
@@ -66,7 +67,7 @@ export default function JogoScreen({ navigation }) {
 
   return (
     <View style={appStyles.container}>
-      <Text style={appStyles.headerText}>Biblioteca de Jogos Cognos</Text>
+      <CustomTitle title="Biblioteca de Jogos Cognos" size="xlarge"/>
       
       <FlatList
         data={JOGOS_DATA}
@@ -85,13 +86,6 @@ const appStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background.dark, // Fundo escuro para destacar os cards
     padding: 10,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.text,
-    marginVertical: 15,
-    paddingHorizontal: 10,
   },
   listContent: {
     paddingBottom: 20, // Espaço extra no final da lista
