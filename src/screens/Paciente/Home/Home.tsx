@@ -1,22 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { useAuth } from "../../../context/AuthContext";
-import CustomButton from "../../../components/Button";
 import ConexoesPaciente from "../../../components/ConexoesPaciente";
+import CustomTitle from "../../../components/Title";
 
 export default function HomePaciente({navigation}) {
-
-  const handleLogOut = async () => {
-    logout();
-    navigation.navigate("Login")
-  }
   
-  const { logout } = useAuth();
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Home Paciente</Text>
+      <CustomTitle title="Home" size="xlarge" titleStyle={{ marginVertical: 24 }} /> 
       <ConexoesPaciente />
-      <CustomButton onPress={handleLogOut} title="Log-Out"></CustomButton>
     </View>
   );
 }
