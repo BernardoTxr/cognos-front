@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   scrollView: {
-    maxHeight: "80%"
+    maxHeight: "70%"
   },
   innerContainer: {
     maxHeight: "80%",

@@ -9,14 +9,32 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   ScrollView,
+  Dimensions,
 } from "react-native";
 import CustomInput from "../../../components/Input";
 import CustomButton from "../../../components/Button";
 import CustomTitle from "../../../components/Title";
 import styles from "./styles";
-import { loginAccount, registerAccount, registerPaciente, registerTerapeuta } from "../../../services/auth";
+import {
+  loginAccount,
+  registerAccount,
+  registerPaciente,
+  registerTerapeuta,
+} from "../../../services/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../../../context/AuthContext";
 
+
+export function showAlert(title: string, message: string, onConfirm?: () => void) {
+  if (Platform.OS === "web") {
+    alert(`${title}\n\n${message}`);
+    if (onConfirm) onConfirm();
+  } else {
+    Alert.alert(title, message, [{ text: "OK", onPress: onConfirm }]);
+  }
+}
+
+const { height } = Dimensions.get("window");
 
 export default function SignUpScreen({ navigation }) {
   const [username, setUsername] = useState("");
@@ -25,6 +43,8 @@ export default function SignUpScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState(""); // Tipo de conta
   const [isPaciente, setIsPaciente] = useState(false);
+
+  const { login } = useAuth();
 
   // Campos adicionais para Paciente
   const [nomeCompleto, setNomeCompleto] = useState("");
@@ -84,7 +104,6 @@ export default function SignUpScreen({ navigation }) {
       return;
     }
 
-    // Valida campos adicionais
     if (isPaciente) {
       if (!nomeCompleto || !dataNascimento || !cpf || !sexo) {
         Alert.alert("Erro", "Todos os campos do paciente devem estar preenchidos");
@@ -98,7 +117,6 @@ export default function SignUpScreen({ navigation }) {
     }
 
     try {
-      // 1️⃣ Cria o usuário
       const userPayload = {
         email,
         username,
@@ -112,19 +130,16 @@ export default function SignUpScreen({ navigation }) {
         userPayload.is_patient
       );
 
-      // realiza login
       const loginResponse = await loginAccount(email, password);
       await AsyncStorage.setItem("authToken", loginResponse.access_token);
 
-
-      // 2️⃣ Cria o perfil dependendo do tipo
       if (isPaciente) {
         await registerPaciente({
           nome_completo: nomeCompleto,
           data_de_nascimento: dataNascimento,
           cpf,
           sexo: sexo === "masc" ? "masc" : sexo === "fem" ? "fem" : "outro",
-          nivel_tea: nivelTea, // opcional, pode definir default
+          nivel_tea: nivelTea,
         });
       } else {
         await registerTerapeuta({
@@ -133,7 +148,10 @@ export default function SignUpScreen({ navigation }) {
         });
       }
 
-      Alert.alert("Sucesso", "Conta criada com sucesso!");
+      showAlert("Sucesso", "Conta criada com sucesso!", async () => {
+        await login(loginResponse);
+      });
+
     } catch (error: any) {
       if (error.response) {
         Alert.alert("Erro", error.response.data.detail);
@@ -144,11 +162,8 @@ export default function SignUpScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View>
+      <TouchableWithoutFeedback>
         <View style={styles.container}>
           <View style={styles.innerContainer}>
             <CustomTitle
@@ -156,7 +171,15 @@ export default function SignUpScreen({ navigation }) {
               subtitle="Preencha os campos abaixo para começar"
             />
 
-            <ScrollView style={styles.scrollView}>
+            {/* ScrollView com altura limitada */}
+            <ScrollView
+              style={[
+                styles.scrollView,
+                { maxHeight: height * 0.7 }, // ✅ máximo de 70% da tela
+              ]}
+              contentContainerStyle={{ paddingBottom: 20 }}
+              keyboardShouldPersistTaps="handled"
+            >
               <View style={styles.inputSpacing}>
                 <CustomInput
                   label="Nome de usuário"
@@ -234,7 +257,6 @@ export default function SignUpScreen({ navigation }) {
                         <CustomInput
                           label="Data de nascimento"
                           placeholder="AAAA-MM-DD"
-                          type="date" // 🔹 Agora o input é do tipo date
                           value={dataNascimento}
                           onChangeText={setDataNascimento}
                         />
@@ -289,6 +311,7 @@ export default function SignUpScreen({ navigation }) {
               )}
             </ScrollView>
 
+            {/* Botões fora do Scroll */}
             <View style={styles.buttonSpacing}>
               <CustomButton
                 title="Cadastrar"
@@ -307,6 +330,6 @@ export default function SignUpScreen({ navigation }) {
           </View>
         </View>
       </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
