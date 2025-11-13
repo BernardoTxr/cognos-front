@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
     height: 48,
     color: Colors.text,
     fontFamily: Fonts.regular,
+     borderWidth: 0,
   },
   icon: {
     marginLeft: 8,

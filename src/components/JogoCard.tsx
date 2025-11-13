@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors} from "../themes";
+import { Colors, Fonts, Spacing} from "../themes";
 
 // Componente para o Card de Jogo
 export const JogoCard = ({ title, description, tests, iconName, onPlay }) => (
@@ -20,8 +20,8 @@ export const JogoCard = ({ title, description, tests, iconName, onPlay }) => (
     <Text style={styles.description}>{description}</Text>
 
     <TouchableOpacity style={styles.playButton} onPress={onPlay}>
-      <Text style={styles.playButtonText}>Jogar</Text>
       <Ionicons name="play-circle-outline" size={20} color={Colors.background.dark} />
+      <Text style={styles.playButtonText}>JOGAR</Text>
     </TouchableOpacity>
   </View>
 );
@@ -29,8 +29,8 @@ export const JogoCard = ({ title, description, tests, iconName, onPlay }) => (
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.background.ligth,
-    borderRadius: 12,
-    padding: 15,
+    borderRadius: Spacing.boderRadius,
+    padding: Spacing.large,
     marginHorizontal: 10,
     marginBottom: 15,
     elevation: 4, // Sombra para Android
@@ -38,6 +38,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
+    width: "90%",
+    alignSelf: "center",
   },
   header: {
     flexDirection: 'row',
@@ -51,18 +53,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 18,
+    fontSize: Fonts.size.large,
     fontWeight: 'bold',
     color: Colors.text,
   },
   tests: {
-    fontSize: 12,
+    fontSize: Fonts.size.medium,
     color: Colors.primary,
     fontWeight: '600',
     marginTop: 2,
   },
   description: {
-    fontSize: 14,
+    fontSize: Fonts.size.medium,
     color: Colors.text,
     marginBottom: 15,
     lineHeight: 20,
@@ -79,8 +81,8 @@ const styles = StyleSheet.create({
   },
   playButtonText: {
     color: Colors.background.dark,
-    fontSize: 16,
+    fontSize: Fonts.size.large,
     fontWeight: 'bold',
-    marginRight: 8,
+    marginLeft: 8,
   },
 });

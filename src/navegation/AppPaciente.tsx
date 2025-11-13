@@ -19,7 +19,6 @@ import CognosLogo from "../assets/images/logo_horizontal.png" ;
 import { useAuth } from "../context/AuthContext";
 import JogoDoWisconsinScreen from "../screens/Jogos/JogoDoWisconsin/Home";
 
-
 const Tab = createDrawerNavigator();
 
 function CustomDrawerContent(props: DrawerContentComponentProps) {
