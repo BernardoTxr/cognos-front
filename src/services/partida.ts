@@ -13,6 +13,21 @@ export async function registerPartidaJogoDaMem(partidaData: {
   }
 }
 
+export async function registerPartidaJogoWisconsin(partidaData: {
+  acertos: number;
+  erros_perseverativos: number;
+  erros_nonperseverativos: number;
+  falha_manter_conjunto: number;
+  categorias_completas: number;
+}) {
+  try {
+    const response = await api.post("/partidas/jogodowisconsin", partidaData);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || error;
+  }
+}
+
 export async function registerPartidaJogoDaBola(partidaData: {
   acertos: number;
   duration: number;

@@ -17,6 +17,7 @@ import { DrawerContentComponentProps
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from "react-native";
 import CognosLogo from "../assets/images/logo_horizontal.png" ;
 import { useAuth } from "../context/AuthContext";
+import JogoDoWisconsinScreen from "../screens/Jogos/JogoDoWisconsin/Home";
 
 const Tab = createDrawerNavigator();
 
@@ -178,7 +179,7 @@ export default function AppPaciente() {
         />
         <Tab.Screen 
           name="WisconsinCardGame" 
-          component={GamePlaceholderScreen} 
+          component={JogoDoWisconsinScreen} 
           options={{ 
             title: "Wisconsin Card Game",
             drawerItemStyle: { display: 'none' } 
