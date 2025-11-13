@@ -10,3 +10,6 @@ export async function fetchPacientes() {
     throw error.response?.data || error;
   }
 }
+
+export const fetchGameData = (game: string, pacienteId: string) =>
+  api.get(`/dashboard/${game}?paciente_id=${pacienteId}`);
