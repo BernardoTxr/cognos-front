@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator, Alert, StyleSheet, ScrollView } from "react-native";
 import PatientPicker from "../../components/PacientePicker";
-import GamePicker from "../../components/JogoPicker";
+import GameCharts from "../../components/GameCharts";
 import { fetchPacientes } from "../../services/dashboard";
 import { Colors, Spacing } from "../../themes";
 
@@ -16,7 +16,7 @@ export default function DashboardScreen({ route }) {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetchPacientes(terapeutaId);
+        const res = await fetchPacientes();
         setPacientes(res.data || []);
         if (res.data?.length > 0) {
           setSelectedPaciente(res.data[0].user_id);
@@ -38,17 +38,17 @@ export default function DashboardScreen({ route }) {
 
   return (
     <ScrollView style={{ backgroundColor: Colors.background.ligth }}>
-          <View style={styles.rowContainer}>
-            <View style={styles.pickerBox}>
-              <PatientPicker 
-                pacientes={pacientes}
+      <View style={styles.rowContainer}>
+        <View style={styles.pickerBox}>
+          <PatientPicker
+              pacientes={pacientes}
                 selectedPaciente={selectedPaciente}
                 onSelectPaciente={setSelectedPaciente}
                 selectedGame={selectedGame}
                 onSelectGame={setSelectedGame}
             />
-            </View>
-          </View>
+        </View>
+      </View>
 
       {selectedPaciente && (
         <GameCharts pacienteId={selectedPaciente} selectedGame={selectedGame} />
