@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,38 +10,54 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Fonts, Spacing } from "../themes";
+import CustomInput from "./Input";
 import CustomTitle from "./Title";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import api from "../services/api"; // axios configurado
-import CustomInput from "../components/Input";
+import api from "../services/api";
 
 export default function ConexoesTerapeuta() {
   const [pacienteId, setPacienteId] = useState("");
+  const [searchName, setSearchName] = useState("");
 
-  // 🧠 Buscar pacientes conectados
+  // 🔁 debounce da busca
+  const [debouncedName, setDebouncedName] = useState("");
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedName(searchName), 300);
+    return () => clearTimeout(timeout);
+  }, [searchName]);
+
+  // 🔍 Buscar pacientes por nome (com exclusão dos já conectados)
+  const { data: pacientesBusca, isLoading: loadingBusca } = useQuery({
+    queryKey: ["buscar-pacientes", debouncedName],
+    queryFn: async () => {
+      if (!debouncedName) return [];
+      const res = await api.get(
+        `/paciente_terapeuta/pacientes/search?nome=${debouncedName}`
+      );
+      return res.data;
+    },
+  });
+
+  // 👥 Pacientes conectados
   const {
     data: pacientes,
     isLoading: loadingPacientes,
     refetch: refetchPacientes,
   } = useQuery({
     queryKey: ["pacientes-conectados"],
-    queryFn: async () => {
-      const res = await api.get("/paciente_terapeuta/me/pacientes");
-      return res.data;
-    },
+    queryFn: async () =>
+      (await api.get("/paciente_terapeuta/me/pacientes")).data,
   });
 
-  // 🧠 Buscar solicitações pendentes (req_paciente)
+  // 🔔 Solicitações pendentes
   const {
     data: solicitacoes,
     isLoading: loadingSolicitacoes,
     refetch: refetchSolicitacoes,
   } = useQuery({
     queryKey: ["solicitacoes-terapeuta"],
-    queryFn: async () => {
-      const res = await api.get("/paciente_terapeuta/solicitacoes/terapeuta");
-      return res.data;
-    },
+    queryFn: async () =>
+      (await api.get("/paciente_terapeuta/solicitacoes/terapeuta")).data,
   });
 
   // 📤 Enviar solicitação
@@ -52,25 +68,20 @@ export default function ConexoesTerapeuta() {
     onSuccess: async () => {
       Alert.alert("Sucesso", "Solicitação enviada!");
       setPacienteId("");
+      setSearchName("");
       await refetchSolicitacoes();
-    },
-    onError: (err: any) => {
-      Alert.alert("Erro", err.response?.data?.detail || "Não foi possível enviar.");
     },
   });
 
-  // ✅ Aceitar conexão
+  // ✔ Aceitar conexão
   const aceitarConexao = useMutation({
     mutationFn: async (conexaoId: number) => {
       await api.put(`/paciente_terapeuta/aceitar/${conexaoId}`);
     },
     onSuccess: async () => {
-      Alert.alert("Sucesso", "Conexão aceita!");
-      await refetchSolicitacoes();
+      Alert.alert("Conexão aceita!");
       await refetchPacientes();
-    },
-    onError: (err: any) => {
-      Alert.alert("Erro", err.response?.data?.detail || "Não foi possível aceitar.");
+      await refetchSolicitacoes();
     },
   });
 
@@ -83,30 +94,82 @@ export default function ConexoesTerapeuta() {
       Alert.alert("Solicitação rejeitada!");
       await refetchSolicitacoes();
     },
-    onError: (err: any) => {
-      Alert.alert("Erro", err.response?.data?.detail || "Não foi possível rejeitar.");
-    },
   });
 
   return (
     <View style={styles.container}>
-      {/* Enviar solicitação */}
       <CustomTitle title="Conectar paciente" size="medium" />
-      <CustomInput
-        placeholder="Digite o ID do paciente"
-        value={pacienteId}
-        onChangeText={setPacienteId}
-      />
-      <TouchableOpacity
-        onPress={() => enviarSolicitacao.mutate()}
-        style={styles.searchItem}
-        disabled={!pacienteId}
-      >
-        <Ionicons name="add-outline" size={24} color={Colors.primary} />
-        <Text style={styles.textFrienship}>Enviar solicitação</Text>
-      </TouchableOpacity>
 
-      {/* Pacientes conectados */}
+      <CustomInput
+        placeholder="Digite o nome do paciente"
+        value={searchName}
+        onChangeText={setSearchName}
+      />
+
+      {loadingBusca && <ActivityIndicator />}
+
+      {/* 🔍 Lista de busca */}
+      {pacientesBusca?.length > 0 && (
+        <FlatList
+          data={pacientesBusca}
+          keyExtractor={(item) => item.user_id}
+          style={{ maxHeight: 160, marginVertical: 8 }}
+          renderItem={({ item }) => {
+            const isSelected = item.user_id === pacienteId;
+            return (
+              <TouchableOpacity
+                style={[
+                  styles.resultItem,
+                  isSelected && styles.selectedItem,
+                ]}
+                onPress={() => setPacienteId(item.user_id)}
+              >
+                <Ionicons
+                  name="person-circle-outline"
+                  size={32}
+                  color="gray"
+                />
+                <View style={{ marginLeft: 10 }}>
+                  <Text style={styles.nome}>{item.nome_completo}</Text>
+                  <Text style={styles.email}>{item.email}</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
+
+      {/* ⭐ Card do paciente selecionado */}
+      {pacienteId !== "" && (
+        <View style={styles.selectedCard}>
+          <Ionicons
+            name="checkmark-circle"
+            size={40}
+            color={Colors.primary}
+          />
+
+          <Text style={styles.selectedText}>Paciente selecionado</Text>
+
+          {(() => {
+            const sel = pacientesBusca?.find((p) => p.user_id === pacienteId);
+            return sel ? (
+              <>
+                <Text style={styles.nome}>{sel.nome_completo}</Text>
+                <Text style={styles.email}>{sel.email}</Text>
+              </>
+            ) : null;
+          })()}
+
+          <TouchableOpacity
+            onPress={() => enviarSolicitacao.mutate()}
+            style={styles.sendButton}
+          >
+            <Text style={styles.sendButtonText}>Enviar solicitação</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* 👥 Pacientes conectados */}
       <CustomTitle title="Meus pacientes" size="medium" />
       {loadingPacientes ? (
         <ActivityIndicator />
@@ -117,8 +180,14 @@ export default function ConexoesTerapeuta() {
           renderItem={({ item }) => (
             <View style={styles.requestItem}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Ionicons name="person-circle-outline" size={32} color="gray" />
-                <Text style={styles.textFrienship}>{item.nome_completo}</Text>
+                <Ionicons
+                  name="person-circle-outline"
+                  size={32}
+                  color="gray"
+                />
+                <Text style={styles.textFrienship}>
+                  {item.nome_completo}
+                </Text>
               </View>
             </View>
           )}
@@ -126,8 +195,8 @@ export default function ConexoesTerapeuta() {
         />
       )}
 
-      {/* Solicitações pendentes */}
-      <CustomTitle title="Solicitações de conexão" size="medium" />
+      {/* 🔔 Solicitações */}
+      <CustomTitle title="Solicitações recebidas" size="medium" />
       {loadingSolicitacoes ? (
         <ActivityIndicator />
       ) : (
@@ -137,11 +206,16 @@ export default function ConexoesTerapeuta() {
           renderItem={({ item }) => (
             <View style={styles.requestItem}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Ionicons name="person-circle-outline" size={32} color="gray" />
-                <Text style={styles.textFrienship}>{item.nome_usuario}</Text>
+                <Ionicons
+                  name="person-circle-outline"
+                  size={32}
+                  color="gray"
+                />
+                <Text style={styles.textFrienship}>
+                  {item.nome_usuario}
+                </Text>
               </View>
 
-              {/* Botões Aceitar e Rejeitar */}
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   onPress={() => aceitarConexao.mutate(item.conexao_id)}
@@ -174,10 +248,69 @@ const styles = StyleSheet.create({
     width: "85%",
     alignSelf: "center",
   },
+
+  resultItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.background.medium,
+    padding: Spacing.small,
+    borderRadius: Spacing.boderRadius,
+    marginVertical: 3,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+
+  selectedItem: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+    borderWidth: 2,
+  },
+
+  selectedCard: {
+    backgroundColor: Colors.background.medium,
+    marginTop: 10,
+    padding: Spacing.medium,
+    borderRadius: Spacing.boderRadius,
+    alignItems: "center",
+  },
+
+  selectedText: {
+    fontFamily: Fonts.medium,
+    fontSize: Fonts.size.medium,
+    marginTop: 5,
+    marginBottom: 5,
+    color: Colors.primary,
+  },
+
+  nome: {
+    fontFamily: Fonts.medium,
+    fontSize: Fonts.size.medium,
+  },
+
+  email: {
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.small,
+    color: "#555",
+  },
+
+  sendButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: Spacing.boderRadius,
+    marginTop: 12,
+  },
+
+  sendButtonText: {
+    color: "#fff",
+    fontFamily: Fonts.medium,
+    fontSize: Fonts.size.medium,
+  },
+
   requestItem: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: Colors.background.medium,
     width: "95%",
     padding: Spacing.small,
@@ -185,30 +318,22 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginVertical: Spacing.xsmall,
   },
-  textFrienship: {
-    fontFamily: Fonts.regular,
-    fontSize: Fonts.size.medium,
-    marginLeft: Spacing.small,
-  },
-  searchItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "25%",
-    alignSelf:"center",
-    backgroundColor: Colors.background.medium,
-    padding: Spacing.small,
-    borderRadius: Spacing.boderRadius,
-    marginVertical: Spacing.small,
-  },
+
   buttonRow: {
     flexDirection: "row",
     gap: Spacing.xsmall,
   },
+
   button: {
     padding: Spacing.xsmall,
     borderRadius: Spacing.boderRadius,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  textFrienship: {
+    fontFamily: Fonts.regular,
+    fontSize: Fonts.size.medium,
+    marginLeft: Spacing.small,
   },
 });

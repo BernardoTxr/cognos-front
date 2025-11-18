@@ -7,7 +7,6 @@ export default function HomePaciente({navigation}) {
   
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <CustomTitle title="Home" size="xlarge" titleStyle={{ marginVertical: 24 }} /> 
       <ConexoesPaciente />
     </View>
   );
