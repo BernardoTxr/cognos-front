@@ -77,6 +77,41 @@ export default function GameCharts({ pacienteId, selectedGame }) {
         </View>
       );
 
+      case "jogodowisconsin":
+  return (
+    <View>
+      <TimeSeriesChart
+        title="Acertos"
+        labels={data.map(d => new Date(d.played_at).toLocaleDateString())}
+        values={data.map(d => d.acertos)}
+      />
+
+      <TimeSeriesChart
+        title="Erros Perseverativos"
+        labels={data.map(d => new Date(d.played_at).toLocaleDateString())}
+        values={data.map(d => d.erros_perseverativos)}
+      />
+
+      <TimeSeriesChart
+        title="Erros Não Perseverativos"
+        labels={data.map(d => new Date(d.played_at).toLocaleDateString())}
+        values={data.map(d => d.erros_nonperseverativos)}
+      />
+
+      <TimeSeriesChart
+        title="Falha em Manter Conjunto"
+        labels={data.map(d => new Date(d.played_at).toLocaleDateString())}
+        values={data.map(d => d.falha_manter_conjunto)}
+      />
+
+      <TimeSeriesChart
+        title="Categorias Completas"
+        labels={data.map(d => new Date(d.played_at).toLocaleDateString())}
+        values={data.map(d => d.categorias_completas)}
+      />
+    </View>
+  );
+
     default:
       return null;
   }
