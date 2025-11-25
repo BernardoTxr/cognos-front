@@ -141,19 +141,6 @@ export default function AppPaciente() {
           }}
         />
         <Tab.Screen 
-          name="Wiki" 
-          component={WikiScreen} 
-          options={{
-            drawerIcon: ({ focused, color, size }) => (
-              <Ionicons 
-                name={focused ? "book" : "book-outline"} 
-                size={size} 
-                color={color} 
-              />
-            ),
-          }}
-        />
-        <Tab.Screen 
           name="JogoDaMemoria" 
           component={JogoDaMemoriaScreen} 
           options={{ 

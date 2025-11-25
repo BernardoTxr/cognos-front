@@ -12,6 +12,7 @@ import { DrawerContentComponentProps
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from "react-native";
 import CognosLogo from "../assets/images/logo_horizontal.png" ;
 import { useAuth } from "../context/AuthContext";
+import AdicionarPostScreen from "../screens/Wiki/CreatePost";
 
 const Tab = createDrawerNavigator();
 
@@ -127,6 +128,19 @@ export default function AppPaciente() {
             drawerIcon: ({ focused, color, size }) => (
               <Ionicons 
                 name={focused ? "book" : "book-outline"} 
+                size={size} 
+                color={color} 
+              />
+            ),
+          }}
+        />
+        <Tab.Screen 
+          name="Post Wiki" 
+          component={AdicionarPostScreen} 
+          options={{
+            drawerIcon: ({ focused, color, size }) => (
+              <Ionicons 
+                name={focused ? "create" : "create-outline"} 
                 size={size} 
                 color={color} 
               />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -31,7 +31,8 @@ export default function WikiScreen() {
     );
   }
 
-  // 🔥 Lista de categorias (dinâmica, funciona para qualquer estrutura)
+  // 🔥 AGRUPA POR TÓPICO: { "fesgrg": [...], "outro_tópico": [...] }
+  // conceitos já vem agrupado do hook
   const categorias = Object.keys(conceitos);
 
   return (
@@ -39,38 +40,38 @@ export default function WikiScreen() {
       <Text style={styles.title}>Wiki</Text>
 
       {categorias.map((categoria) => (
-        <View key={categoria} style={styles.section}>
-          {/* HEADER DO ACCORDION */}
-          <TouchableOpacity
-            style={styles.header}
-            onPress={() =>
-              setOpenSection(openSection === categoria ? null : categoria)
-            }
-          >
-            <Text style={styles.headerText}>{categoria.toUpperCase()}</Text>
+  <View key={categoria} style={styles.section}>
+    {/* HEADER DO ACCORDION */}
+    <TouchableOpacity
+      style={styles.header}
+      onPress={() =>
+        setOpenSection(openSection === categoria ? null : categoria)
+      }
+    >
+      <Text style={styles.headerText}>{categoria}</Text>
 
-            <Ionicons
-              name={openSection === categoria ? "chevron-up" : "chevron-down"}
-              size={20}
-              color="#000"
-            />
-          </TouchableOpacity>
+      <Ionicons
+        name={openSection === categoria ? "chevron-up" : "chevron-down"}
+        size={20}
+        color="#000"
+      />
+    </TouchableOpacity>
 
-          {/* LISTA EXPANSÍVEL */}
-          {openSection === categoria && (
-            <FlatList
-              data={conceitos[categoria]}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.item}>
-                  <Text style={styles.itemTitulo}>{item.titulo}</Text>
-                  <Text style={styles.itemDescricao}>{item.descricao}</Text>
-                </View>
-              )}
-            />
-          )}
-        </View>
-      ))}
+    {/* LISTA EXPANSÍVEL */}
+    {openSection === categoria && (
+      <FlatList
+        data={conceitos[categoria]} // ← CORRIGIDO
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.item}>
+            <Text style={styles.itemTitulo}>{item.conceito}</Text>
+            <Text style={styles.itemDescricao}>{item.definicao}</Text>
+          </View>
+        )}
+      />
+    )}
+  </View>
+))}
     </View>
   );
 }

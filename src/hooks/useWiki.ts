@@ -15,7 +15,7 @@ function groupByCategory(conceitos: WikiConcept[]): WikiGrouped {
   const grupos: WikiGrouped = {};
 
   conceitos.forEach((c) => {
-    const categoria = c.topico_rel?.nome ?? "Outros";
+    const categoria = c.topico_rel?.topico ?? "Outros";
 
     if (!grupos[categoria]) {
       grupos[categoria] = [];
