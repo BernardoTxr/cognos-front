@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import CustomInput from "../components/Input";
 import { Colors, Spacing } from "../themes";
 
-type GameKey = "jogodamem" | "jogodabola" | "jogoreac";
+type GameKey = "jogodamem" | "jogodabola" | "jogoreac" | "jogodowisconsin";
 
 interface Patient {
   user_id: string;
@@ -42,6 +42,7 @@ export default function DashboardPickersRow({
     { label: "Jogo da Memória", value: "jogodamem" },
     { label: "Jogo da Bola", value: "jogodabola" },
     { label: "Jogo de Reação", value: "jogoreac" },
+    { label: "Jogo Wisconsin", value: "jogodowisconsin" },
     { label: "Cognos Math", value: "jogodocognosmath" },
   ];
 

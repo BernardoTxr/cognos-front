@@ -9,7 +9,7 @@ export default function DashboardScreen({ route }) {
   const terapeutaId = route.params?.terapeutaId;
   const [pacientes, setPacientes] = useState<any[]>([]);
   const [selectedPaciente, setSelectedPaciente] = useState<string | null>(null);
-  const [selectedGame, setSelectedGame] = useState<"jogodamem" | "jogodocognosmath" | "jogodabola" | "jogoreac">("jogodamem");
+  const [selectedGame, setSelectedGame] = useState<"jogodamem" | "jogodocognosmath" | "jogodabola" | "jogoreac" | "jogodowisconsin">("jogodamem");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
