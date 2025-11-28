@@ -43,6 +43,7 @@ export default function DashboardPickersRow({
     { label: "Jogo da Bola", value: "jogodabola" },
     { label: "Jogo de Reação", value: "jogoreac" },
     { label: "Jogo Wisconsin", value: "jogodowisconsin" },
+    { label: "Cognos Math", value: "jogodocognosmath" },
   ];
 
   return (
