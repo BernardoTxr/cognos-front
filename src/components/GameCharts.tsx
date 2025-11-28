@@ -50,6 +50,27 @@ export default function GameCharts({ pacienteId, selectedGame }) {
         </View>
       );
 
+    case "jogodocognosmath":
+      return (
+        <View>
+          <TimeSeriesChart
+            title="Acertos"
+            labels={data.map(d => new Date(d.played_at).toLocaleDateString())}
+            values={data.map(d => d.acertos)}
+          />
+          <TimeSeriesChart
+            title="Tempo medio por partida (segundos)"
+            labels={data.map(d => new Date(d.played_at).toLocaleDateString())}
+            values={data.map(d => d.tempo_medio_jogada)}
+          />
+          <TimeSeriesChart
+            title="Variância da partida (segundos)"
+            labels={data.map(d => new Date(d.played_at).toLocaleDateString())}
+            values={data.map(d => d.variancia_jogada)}
+          />
+        </View>
+      );
+
     case "jogodabola":
       return (
         <View>
