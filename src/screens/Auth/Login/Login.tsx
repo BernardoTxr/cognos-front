@@ -46,7 +46,7 @@ export default function LoginScreen({ navigation }) {
       <View style={styles.mainContainer}>
       <CustomTitle
         title="Bem-vindo de volta!"
-        subtitle="Pronto para mais uma sessão de estudos?"
+        subtitle="Pronto para mais uma sessão?"
       />
 
       <View style={styles.inputSpacing}>
