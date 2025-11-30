@@ -1,16 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "../services/api";
 import { WikiConcept } from "../types/wiki";
+import { useAuth } from "../context/AuthContext";
 
 type WikiGrouped = Record<string, WikiConcept[]>;
 
-// Busca bruta da API
 async function fetchWikiConcepts() {
   const { data } = await api.get<WikiConcept[]>("/wiki");
   return data;
 }
 
-// Agrupa por categoria (topico_rel.nome)
+async function fetchWikiConceptsPending() {
+  const { data } = await api.get<WikiConcept[]>("/wiki/pending");
+  console.log("data:", data)
+  return data;
+}
+
 function groupByCategory(conceitos: WikiConcept[]): WikiGrouped {
   const grupos: WikiGrouped = {};
 
@@ -28,7 +33,11 @@ function groupByCategory(conceitos: WikiConcept[]): WikiGrouped {
 }
 
 export default function useWiki() {
-  const query = useQuery<WikiGrouped>({
+
+  const { user } = useAuth();
+  const isSuperuser = user?.is_superuser || false;
+
+  const conceitosQuery = useQuery({
     queryKey: ["wikiConcepts"],
     queryFn: async () => {
       const conceitos = await fetchWikiConcepts();
@@ -36,8 +45,19 @@ export default function useWiki() {
     },
   });
 
+  const pendentesQuery = useQuery({
+    queryKey: ["wikiPending"],
+    queryFn: fetchWikiConceptsPending,
+    enabled: !!isSuperuser,
+  });
+
   return {
-    ...query,
-    conceitos: query.data,
+    conceitos: conceitosQuery.data,
+    pendentes: pendentesQuery.data ?? [],
+    isLoading: conceitosQuery.isLoading || pendentesQuery.isLoading,
+    refetch: () => {
+      conceitosQuery.refetch();
+      pendentesQuery.refetch();
+    },
   };
 }

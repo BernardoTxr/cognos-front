@@ -74,7 +74,7 @@ export default function ConexoesPaciente() {
 
   });
 
-    // ❌ Rejeitar conexão
+    // Rejeitar conexão
   const rejeitarConexao = useMutation({
     mutationFn: async (conexaoId: number) => {
       await api.delete(`/paciente_terapeuta/rejeitar/${conexaoId}`);
@@ -129,7 +129,6 @@ export default function ConexoesPaciente() {
         />
       )}
 
-      {/* Card do selecionado */}
       {terapeutaId !== "" && (
         <View style={styles.selectedCard}>
           <Ionicons name="checkmark-circle" size={40} color={Colors.primary} />
@@ -138,7 +137,6 @@ export default function ConexoesPaciente() {
             Terapeuta selecionado
           </Text>
 
-          {/** Procura os dados completos do terapeuta selecionado */}
           {(() => {
             const sel = terapeutasBusca?.find(t => t.user_id === terapeutaId);
             return sel ? (

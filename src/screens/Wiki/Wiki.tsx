@@ -6,14 +6,22 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import useWiki from "../../hooks/useWiki";
+import api from "../../services/api";
 import { Colors, Spacing, Fonts } from "../../themes";
+import { useAuth } from "../../context/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function WikiScreen() {
-  const { conceitos, isLoading } = useWiki();
+  const { conceitos, isLoading, pendentes } = useWiki();
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { user } = useAuth();
+  const isSuperuser = user?.is_superuser || false;
 
   if (isLoading) {
     return (
@@ -33,51 +41,103 @@ export default function WikiScreen() {
 
   const categorias = Object.keys(conceitos);
 
+  // SUPERADMIN — aprovar / rejeitar
+  const handleAprovar = async (id: number) => {
+    try {
+      await api.post(`/wiki/${id}/approve`);
+      queryClient.invalidateQueries({ queryKey: ["wikiConcepts"] });
+      queryClient.invalidateQueries({ queryKey: ["wikiPending"] });
+      Alert.alert("Aprovado!", "O item foi aprovado.");
+    } catch {
+      Alert.alert("Erro", "Não foi possível aprovar.");
+    }
+  };
+
+  const handleRejeitar = async (id: number) => {
+    try {
+      await api.post(`/wiki/${id}/reject`);
+      queryClient.invalidateQueries({ queryKey: ["wikiConcepts"] });
+      queryClient.invalidateQueries({ queryKey: ["wikiPending"] });
+      Alert.alert("Rejeitado!", "O item foi rejeitado.");
+    } catch {
+      Alert.alert("Erro", "Não foi possível rejeitar.");
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* ScrollView adicionada para permitir rolagem da tela toda */}
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        
         <Text style={styles.title}>Cognos Wiki</Text>
+
+        {isSuperuser && pendentes && pendentes.length > 0 && (
+          <View style={styles.pendingBox}>
+            <Text style={styles.pendingTitle}>Posts Pendentes</Text>
+
+            {pendentes.map((item) => (
+              <View key={item.id} style={styles.pendingItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.itemTitulo}>{item.conceito}</Text>
+                  <Text style={styles.authorText}>Criado por: {item.autor_id}</Text>
+                  <Text style={styles.itemDescricao}>{item.definicao}</Text>
+                </View>
+
+                <View style={styles.actionRow}>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.approve]}
+                    onPress={() => handleAprovar(item.id)}
+                  >
+                    <Ionicons name="checkmark-outline" size={22} color="#fff" />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.reject]}
+                    onPress={() => handleRejeitar(item.id)}
+                  >
+                    <Ionicons name="close-outline" size={22} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
 
         {categorias.map((categoria) => {
           const isOpen = openSection === categoria;
 
+          const itensVisiveis = isSuperuser
+            ? conceitos[categoria]
+            : conceitos[categoria].filter((c) => c.status === "approved");
+
+          if (itensVisiveis.length === 0) return null;
+
           return (
             <View key={categoria} style={styles.sectionContainer}>
-              {/* HEADER DO ACCORDION */}
               <TouchableOpacity
-                style={[
-                  styles.header,
-                  isOpen && styles.headerOpen, // Remove borda inferior se aberto
-                ]}
-                activeOpacity={0.7}
+                style={[styles.header, isOpen && styles.headerOpen]}
                 onPress={() => setOpenSection(isOpen ? null : categoria)}
               >
                 <Text style={styles.headerText}>{categoria}</Text>
-                <Ionicons
-                  name={isOpen ? "chevron-up" : "chevron-down"}
-                  size={20}
-                  color={Colors.primary || "#333"}
-                />
+                <Ionicons name={isOpen ? "chevron-up" : "chevron-down"} size={20} color={Colors.primary}/>
               </TouchableOpacity>
 
-              {/* CONTEÚDO EXPANSÍVEL */}
-              {/* Substituído FlatList por map para evitar conflito com ScrollView */}
               {isOpen && (
                 <View style={styles.contentBody}>
-                  {conceitos[categoria].map((item, index) => (
-                    <View 
-                      key={item.id.toString()} 
-                      style={[
-                        styles.item,
-                        index === conceitos[categoria].length - 1 && styles.lastItem // Remove borda do último
-                      ]}
-                    >
+                  {itensVisiveis.map((item) => (
+                    <View key={item.id} style={styles.itemCard}>
                       <Text style={styles.itemTitulo}>{item.conceito}</Text>
+
+                      <Text style={styles.authorText}>
+                        Criado por: {item.autor_id}
+                      </Text>
+
                       <Text style={styles.itemDescricao}>{item.definicao}</Text>
+
+                      {isSuperuser && (
+                        <Text style={styles.statusText}>
+                          Status: {item.status}
+                        </Text>
+                      )}
                     </View>
                   ))}
                 </View>
@@ -97,83 +157,121 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: Spacing.large,
-    paddingBottom: 40,
+    paddingBottom: 60,
+  },
+  title: {
+    fontFamily: Fonts.bold,
+    fontSize: 28,
+    textAlign: "center",
+    color: Colors.primary,
+    marginBottom: 25,
+  },
+  pendingBox: {
+    padding: 16,
+    backgroundColor: "#FFF3CC",
+    borderRadius: 12,
+    marginBottom: 24,
+    borderLeftWidth: 5,
+    borderLeftColor: "#FFB300",
+  },
+  pendingTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+    marginBottom: 12,
+    color: "#8A5A00",
+  },
+  pendingItem: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#FFE9A3",
+    flexDirection: "row",
+    gap: 10,
+  },
+  actionRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  actionButton: {
+    padding: Spacing.xsmall,
+    borderRadius: Spacing.boderRadius,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 40,
+    width: 40,
+    marginHorizontal: Spacing.xsmall,
+  },
+  approve: { backgroundColor: Colors.colors.green},
+  reject: { backgroundColor: Colors.colors.red },
+
+  sectionContainer: {
+    marginBottom: 16,
+    borderRadius: 14,
+    backgroundColor: Colors.background.medium,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+  },
+  header: {
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderRadius: 14,
+  },
+  headerOpen: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  headerText: {
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+    color: "#333",
+    textTransform: "capitalize",
+  },
+  contentBody: {
+    padding: 10,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
   center: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
   },
   errorText: {
     fontFamily: Fonts.medium,
-    color: "#666",
   },
-  title: {
-    fontFamily: Fonts.bold,
-    fontSize: Fonts.size.large + 4, // Um pouco maior
-    marginBottom: 24,
-    textAlign: "center",
-    color: Colors.primary || "#000",
-  },
-  // Estilo do Cartão (Section)
-  sectionContainer: {
-    marginBottom: 16,
-    borderRadius: Spacing.boderRadius,
-    backgroundColor: "#fff", // Ou Colors.background.paper
-    // Sombras para dar destaque (elevation para Android, shadow para iOS)
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: Spacing.medium,
-    paddingVertical: 16, // Mais altura para toque
-    alignItems: "center",
-    backgroundColor: "#fff", // Fundo do header
-    borderRadius: Spacing.boderRadius,
-  },
-  headerOpen: {
-    // Quando aberto, remove o arredondamento inferior para colar no conteúdo
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  headerText: {
-    fontFamily: Fonts.bold, // Destaque maior para a categoria
-    fontSize: Fonts.size.medium,
-    color: "#333",
-    textTransform: "capitalize",
-  },
-  // Corpo do Accordion
-  contentBody: {
-    backgroundColor: "#fafafa", // Fundo levemente diferente para o conteúdo
-    borderBottomLeftRadius: Spacing.boderRadius,
-    borderBottomRightRadius: Spacing.boderRadius,
-    paddingHorizontal: Spacing.medium,
-  },
-  item: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  lastItem: {
-    borderBottomWidth: 0, // Remove linha do último item
+  itemCard: {
+    backgroundColor: "#fff",
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
   itemTitulo: {
     fontFamily: Fonts.bold,
-    fontSize: Fonts.size.medium,
-    color: Colors.primary || "#007AFF", // Cor de destaque no título do item
+    fontSize: 17,
+    color: Colors.primary,
     marginBottom: 4,
+  },
+  authorText: {
+    fontSize: 12,
+    color: "#777",
+    marginBottom: 8,
   },
   itemDescricao: {
     fontFamily: Fonts.regular,
-    fontSize: Fonts.size.small,
-    color: "#555",
-    lineHeight: 20, // Melhor leitura
+    fontSize: 14,
+    color: "#444",
+    lineHeight: 20,
+  },
+  statusText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: "#999",
   },
 });

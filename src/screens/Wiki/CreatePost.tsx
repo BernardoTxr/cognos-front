@@ -10,18 +10,29 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import api from "../../services/api"
+import api from "../../services/api";
 import { Colors, Spacing, Fonts } from "../../themes";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { Picker } from "@react-native-picker/picker";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdicionarPostScreen() {
+    const { user } = useAuth();
+    const isSuperuser = user?.is_superuser || false;
+
+  const { data: topicos } = useQuery({
+    queryKey: ["wikiTopics"],
+    queryFn: async () => {
+      const r = await api.get("/wiki/topics");
+      return r.data;
+    },
+  });
+
   const [topico, setTopico] = useState("");
   const [conceito, setConceito] = useState("");
   const [definicao, setDefinicao] = useState("");
   const [loading, setLoading] = useState(false);
-  // invalidate query wiki concepts after submit
-    const queryClient = useQueryClient();
-
+  const queryClient = useQueryClient();
 
   const handleSubmit = async () => {
     if (!topico || !conceito || !definicao) {
@@ -38,12 +49,14 @@ export default function AdicionarPostScreen() {
         definicao,
       });
 
-      Alert.alert("Sucesso!", "Post criado na Wiki.");
-    
-      // invalidate wikiconcepts query here if using react-query
-        queryClient.invalidateQueries({ queryKey: ["wikiConcepts"] });
+      Alert.alert(
+        "Sucesso!",
+        isSuperuser ? "Post aprovado automaticamente!" : "Post criado e enviado para aprovação."
+      );
 
-      // Reset form
+      queryClient.invalidateQueries({ queryKey: ["wikiConcepts"] });
+      queryClient.invalidateQueries({ queryKey: ["wikiPending"] });
+
       setTopico("");
       setConceito("");
       setDefinicao("");
@@ -60,12 +73,28 @@ export default function AdicionarPostScreen() {
       <Text style={styles.title}>Adicionar Post na Wiki</Text>
 
       <Text style={styles.label}>Tópico</Text>
-      <TextInput
-        value={topico}
-        onChangeText={setTopico}
-        placeholder="Ex: Digite um tópico..."
-        style={styles.input}
-      />
+
+      {isSuperuser ? (
+        // SUPERADMIN PODE CRIAR TÓPICO LIVREMENTE
+        <TextInput
+          value={topico}
+          onChangeText={setTopico}
+          placeholder="Digite um novo tópico..."
+          style={styles.input}
+        />
+      ) : (
+        // TERAPEUTA ESCOLHE ENTRE TÓPICOS EXISTENTES
+        <Picker
+          selectedValue={topico}
+          onValueChange={setTopico}
+          style={styles.input}
+        >
+          <Picker.Item label="Selecione um tópico" value="" />
+          {topicos?.map((t) => (
+            <Picker.Item key={t.id} label={t.topico} value={t.topico} />
+          ))}
+        </Picker>
+      )}
 
       <Text style={styles.label}>Conceito</Text>
       <TextInput
